@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const db = client.db('home-service')
     const serviceCollection = db.collection('services')
     const bookingCollection = db.collection('booking')
@@ -127,8 +127,52 @@ async function run() {
     })
 
 
+
+    // Add Review API
+
+
+
+    app.put("/service/:id/review", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const newReview = req.body;
+
+        // review push করা
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $push: { "service_rating.reviews": newReview },
+        };
+
+        const result = await serviceCollection.updateOne(filter, updateDoc);
+
+        if (result.modifiedCount > 0) {
+          res.send({
+            success: true,
+            message: "✅ Review added successfully",
+            result,
+          });
+        } else {
+          res.status(404).send({
+            success: false,
+            message: "Service not found or no changes made",
+          });
+        }
+      } catch (error) {
+        console.error("Error adding review:", error);
+        res.status(500).send({
+          success: false,
+          message: "❌ Failed to add review",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
+
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
 
