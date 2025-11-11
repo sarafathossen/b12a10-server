@@ -122,9 +122,19 @@ async function run() {
 
 
     app.get('/sorted-data', async (req, res) => {
-      const result = await serviceCollection.find().limit(6).toArray()
-      res.send(result)
-    })
+      try {
+        const result = await serviceCollection
+          .find()
+          .sort({ "service_rating.rating": -1 }) // Descending order (high to low)
+          .limit(6)
+          .toArray();
+        res.send(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: "Failed to fetch sorted data" });
+      }
+    });
+
 
 
 
