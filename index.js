@@ -147,10 +147,34 @@ async function run() {
         const { id } = req.params;
         const newReview = req.body;
 
-        // review push করা
         const filter = { _id: new ObjectId(id) };
+
+        // 🔹 Step 1: আগের ডেটা নিয়ে আসা
+        const service = await serviceCollection.findOne(filter);
+        if (!service) {
+          return res.status(404).send({
+            success: false,
+            message: "Service not found",
+          });
+        }
+
+        // 🔹 Step 2: পুরনো রিভিউ + নতুন রিভিউ একত্র করা
+        const oldReviews = service.service_rating?.reviews || [];
+        const updatedReviews = [...oldReviews, newReview];
+
+        // 🔹 Step 3: গড় রেটিং বের করা
+        const ratings = updatedReviews.map(r => r.rating || 0);
+        const avgRating =
+          ratings.length > 0
+            ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+            : 0;
+
+        // 🔹 Step 4: MongoDB তে আপডেট করা (রিভিউ + গড় রেটিং)
         const updateDoc = {
-          $push: { "service_rating.reviews": newReview },
+          $set: {
+            "service_rating.reviews": updatedReviews,
+            "service_rating.rating": parseFloat(avgRating),
+          },
         };
 
         const result = await serviceCollection.updateOne(filter, updateDoc);
@@ -158,13 +182,13 @@ async function run() {
         if (result.modifiedCount > 0) {
           res.send({
             success: true,
-            message: "✅ Review added successfully",
-            result,
+            message: "✅ Review & Rating updated successfully",
+            avgRating,
           });
         } else {
-          res.status(404).send({
+          res.status(400).send({
             success: false,
-            message: "Service not found or no changes made",
+            message: "No changes made",
           });
         }
       } catch (error) {
@@ -176,6 +200,95 @@ async function run() {
         });
       }
     });
+
+
+
+
+    app.put("/booking/:id/review", async (req, res) => {
+      try {
+        const { id } = req.params;       // URL থেকে আসা custom id
+        const newReview = req.body;      // { reviewer, comment, rating, date }
+
+        // 🔹 Custom 'id' ফিল্ড দিয়ে filter
+        const filter = { id: id };
+
+        // 🔹 আগের ডেটা নিয়ে আসা
+        const service = await bookingCollection.findOne(filter);
+        if (!service) {
+          return res.status(404).send({
+            success: false,
+            message: "Service not found",
+          });
+        }
+
+        // 🔹 পুরনো রিভিউ + নতুন রিভিউ একত্র করা
+        const oldReviews = service.rating?.reviews || [];
+        const updatedReviews = [...oldReviews, newReview];
+
+        // 🔹 গড় রেটিং বের করা
+        const ratings = updatedReviews.map(r => r.rating || 0);
+        const avgRating =
+          ratings.length > 0
+            ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+            : 0;
+
+        // 🔹 MongoDB আপডেট করা (rating ফিল্ডে)
+        const updateDoc = {
+          $set: {
+            "rating.reviews": updatedReviews,
+            "rating.rating": parseFloat(avgRating),
+          },
+        };
+
+        const result = await bookingCollection.updateOne(filter, updateDoc);
+
+        if (result.modifiedCount > 0) {
+          res.send({
+            success: true,
+            message: "✅ Review & Rating updated successfully",
+            avgRating,
+          });
+        } else {
+          res.status(400).send({
+            success: false,
+            message: "No changes made",
+          });
+        }
+      } catch (error) {
+        console.error("Error adding review:", error);
+        res.status(500).send({
+          success: false,
+          message: "❌ Failed to add review",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
+
+
+
+    //     app.patch('/service/:id/review', async (req, res) => {
+    //   const { id } = req.params;
+    //   const newReview = req.body;
+
+    //   try {
+    //     const result = await serviceCollection.updateOne(
+    //       { _id: new ObjectId(id) },
+    //       { $push: { reviews: newReview } },
+    //       { upsert: true }
+    //     );
+
+    //     res.send({ success: true, result });
+    //   } catch (err) {
+    //     console.error(err);
+    //     res.status(500).send({ success: false, error: err.message });
+    //   }
+    // });
+
+
 
 
 
