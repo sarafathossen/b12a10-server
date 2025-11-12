@@ -125,7 +125,7 @@ async function run() {
       try {
         const result = await serviceCollection
           .find()
-          .sort({ "service_rating.rating": -1 }) // Descending order (high to low)
+          .sort({ "service_rating.rating": -1 }) 
           .limit(6)
           .toArray();
         res.send(result);
@@ -138,7 +138,7 @@ async function run() {
 
 
 
-    // Add Review API
+    
 
 
 
@@ -149,7 +149,7 @@ async function run() {
 
         const filter = { _id: new ObjectId(id) };
 
-        // 🔹 Step 1: আগের ডেটা নিয়ে আসা
+        
         const service = await serviceCollection.findOne(filter);
         if (!service) {
           return res.status(404).send({
@@ -158,18 +158,18 @@ async function run() {
           });
         }
 
-        // 🔹 Step 2: পুরনো রিভিউ + নতুন রিভিউ একত্র করা
+      
         const oldReviews = service.service_rating?.reviews || [];
         const updatedReviews = [...oldReviews, newReview];
 
-        // 🔹 Step 3: গড় রেটিং বের করা
+       
         const ratings = updatedReviews.map(r => r.rating || 0);
         const avgRating =
           ratings.length > 0
             ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
             : 0;
 
-        // 🔹 Step 4: MongoDB তে আপডেট করা (রিভিউ + গড় রেটিং)
+        
         const updateDoc = {
           $set: {
             "service_rating.reviews": updatedReviews,
@@ -206,13 +206,13 @@ async function run() {
 
     app.put("/booking/:id/review", async (req, res) => {
       try {
-        const { id } = req.params;       // URL থেকে আসা custom id
-        const newReview = req.body;      // { reviewer, comment, rating, date }
+        const { id } = req.params;       
+        const newReview = req.body;      
 
-        // 🔹 Custom 'id' ফিল্ড দিয়ে filter
+        
         const filter = { id: id };
 
-        // 🔹 আগের ডেটা নিয়ে আসা
+       
         const service = await bookingCollection.findOne(filter);
         if (!service) {
           return res.status(404).send({
@@ -221,18 +221,18 @@ async function run() {
           });
         }
 
-        // 🔹 পুরনো রিভিউ + নতুন রিভিউ একত্র করা
+        
         const oldReviews = service.rating?.reviews || [];
         const updatedReviews = [...oldReviews, newReview];
 
-        // 🔹 গড় রেটিং বের করা
+        
         const ratings = updatedReviews.map(r => r.rating || 0);
         const avgRating =
           ratings.length > 0
             ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
             : 0;
 
-        // 🔹 MongoDB আপডেট করা (rating ফিল্ডে)
+        
         const updateDoc = {
           $set: {
             "rating.reviews": updatedReviews,
@@ -263,19 +263,6 @@ async function run() {
         });
       }
     });
-
-
-
-
-
-
-
-    
-
-
-
-
-
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
