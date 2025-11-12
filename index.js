@@ -270,24 +270,7 @@ async function run() {
 
 
 
-    //     app.patch('/service/:id/review', async (req, res) => {
-    //   const { id } = req.params;
-    //   const newReview = req.body;
-
-    //   try {
-    //     const result = await serviceCollection.updateOne(
-    //       { _id: new ObjectId(id) },
-    //       { $push: { reviews: newReview } },
-    //       { upsert: true }
-    //     );
-
-    //     res.send({ success: true, result });
-    //   } catch (err) {
-    //     console.error(err);
-    //     res.status(500).send({ success: false, error: err.message });
-    //   }
-    // });
-
+    
 
 
 
