@@ -8,9 +8,6 @@ app.use(cors())
 app.use(express.json())
 
 
-
-
-
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.vmnyifr.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -125,7 +122,7 @@ async function run() {
       try {
         const result = await serviceCollection
           .find()
-          .sort({ "service_rating.rating": -1 }) 
+          .sort({ "service_rating.rating": -1 })
           .limit(6)
           .toArray();
         res.send(result);
@@ -137,11 +134,6 @@ async function run() {
 
 
 
-
-    
-
-
-
     app.put("/service/:id/review", async (req, res) => {
       try {
         const { id } = req.params;
@@ -149,7 +141,7 @@ async function run() {
 
         const filter = { _id: new ObjectId(id) };
 
-        
+
         const service = await serviceCollection.findOne(filter);
         if (!service) {
           return res.status(404).send({
@@ -158,18 +150,18 @@ async function run() {
           });
         }
 
-      
+
         const oldReviews = service.service_rating?.reviews || [];
         const updatedReviews = [...oldReviews, newReview];
 
-       
+
         const ratings = updatedReviews.map(r => r.rating || 0);
         const avgRating =
           ratings.length > 0
             ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
             : 0;
 
-        
+
         const updateDoc = {
           $set: {
             "service_rating.reviews": updatedReviews,
@@ -201,18 +193,15 @@ async function run() {
       }
     });
 
-
-
-
     app.put("/booking/:id/review", async (req, res) => {
       try {
-        const { id } = req.params;       
-        const newReview = req.body;      
+        const { id } = req.params;
+        const newReview = req.body;
 
-        
+
         const filter = { id: id };
 
-       
+
         const service = await bookingCollection.findOne(filter);
         if (!service) {
           return res.status(404).send({
@@ -221,18 +210,18 @@ async function run() {
           });
         }
 
-        
+
         const oldReviews = service.rating?.reviews || [];
         const updatedReviews = [...oldReviews, newReview];
 
-        
+
         const ratings = updatedReviews.map(r => r.rating || 0);
         const avgRating =
           ratings.length > 0
             ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
             : 0;
 
-        
+
         const updateDoc = {
           $set: {
             "rating.reviews": updatedReviews,
